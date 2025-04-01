@@ -1,0 +1,29 @@
+{
+    "name": "learn-server-mvc-authentication",
+    "version": "1.0.0",
+    "description": "Server example for using sessions and cookies",
+    "main": "app.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "nodemon app.js",
+        "start-server": "node app.js"
+    },
+    "author": "Alexander Novitsky",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/express": "^5.0.0",
+        "@types/node": "^22.13.1",
+        "@types/sequelize": "^4.28.20",
+        "nodemon": "^3.1.9"
+    },
+    "dependencies": {
+        "body-parser": "^1.18.3",
+        "connect-mongodb-session": "^5.0.0",
+        "dotenv": "^16.4.7",
+        "ejs": "^3.1.10",
+        "express": "^4.16.3",
+        "express-session": "^1.18.1",
+        "mongodb": "^3.1.6",
+        "mongoose": "^8.13.1"
+    }
+}
