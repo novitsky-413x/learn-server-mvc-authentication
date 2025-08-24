@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
@@ -130,4 +131,74 @@ exports.getReset = (req, res, next) => {
         pageTitle: 'Reset Password',
         errorMessage: message,
     });
+};
+
+exports.postReset = (req, res, next) => {
+    crypto.randomBytes(32, (err, buffer) => {
+        if (err) {
+            console.log(err);
+            return res.redirect('/reset');
+        }
+        const token = buffer.toString('hex');
+        User.findOne({ email: req.body.email })
+            .then((user) => {
+                if (!user) {
+                    req.flash('error', 'User with this email does not exist.');
+                    return res.redirect('/reset');
+                }
+                user.resetToken = token;
+                user.resetTokenExpiration = Date.now() + 3600000;
+                return user.save();
+            })
+            .then((result) => {
+                // Send email first, then redirect
+                return transporter.sendMail({
+                    to: req.body.email,
+                    from: 'support@runcode.at',
+                    subject: 'Reset Password',
+                    html: `
+                    <p>You requested a password reset</p>
+                    <p>Click <a href="http://${process.env.DOMAIN}/reset/${token}">here</a> to reset your password</p>
+                    <p>If you did not request a password reset, please ignore this email</p>
+                    `,
+                    text: `
+                    You requested a password reset
+                    Click ${process.env.DOMAIN}/reset/${token} to reset your password
+                    If you did not request a password reset, please ignore this email
+                    `,
+                });
+            })
+            .then(() => {
+                // Redirect after email is sent successfully
+                res.redirect('/');
+            })
+            .catch((err) => {
+                console.log(err);
+                // If email fails, still redirect but log the error
+                res.redirect('/');
+            });
+    });
+};
+
+exports.getNewPassword = (req, res, next) => {
+    const token = req.params.token;
+    User.findOne({ resetToken: token, resetTokenExpiration: { $gt: Date.now() } })
+        .then((user) => {
+            let message = req.flash('error');
+            if (message.length > 0) {
+                message = message[0];
+            } else {
+                message = null;
+            }
+            res.render('auth/new-password', {
+                path: '/new-password',
+                pageTitle: 'New Password',
+                errorMessage: message,
+                userId: user._id.toString(),
+            });
+        })
+        .catch((err) => {
+            console.log(err);
+            res.redirect('/reset');
+        });
 };
