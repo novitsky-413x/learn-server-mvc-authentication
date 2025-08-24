@@ -97,6 +97,7 @@ exports.postSignup = (req, res, next) => {
                     return user.save();
                 })
                 .then((result) => {
+                    res.redirect('/login');
                     return transporter.sendMail({
                         to: email,
                         from: 'support@runcode.at',
@@ -104,9 +105,6 @@ exports.postSignup = (req, res, next) => {
                         html: '<h1>You successfully signed up!</h1>',
                         text: 'You successfully signed up!',
                     });
-                })
-                .then((result) => {
-                    res.redirect('/login');
                 })
                 .catch((err) => console.log(err));
         })
@@ -117,5 +115,19 @@ exports.postLogout = (req, res, next) => {
     req.session.destroy((err) => {
         if (err) console.log(err);
         res.redirect('/');
+    });
+};
+
+exports.getReset = (req, res, next) => {
+    let message = req.flash('error');
+    if (message.length > 0) {
+        message = message[0];
+    } else {
+        message = null;
+    }
+    res.render('auth/reset', {
+        path: '/reset',
+        pageTitle: 'Reset Password',
+        errorMessage: message,
     });
 };
