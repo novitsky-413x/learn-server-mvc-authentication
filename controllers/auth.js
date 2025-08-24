@@ -1,15 +1,25 @@
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
+const fs = require('fs');
+const path = require('path');
 
 const User = require('../models/user');
-const { error } = require('console');
+
+const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    secure: true,
+    auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+    },
+    tls: {
+        rejectUnauthorized: false, // Ignore SSL certificate verification
+        servername: process.env.SMTP_SERVERNAME, // Use your domain name for SNI
+    },
+});
 
 exports.getLogin = (req, res, next) => {
-    // const isLoggedIn =
-    //     req
-    //         .get('Cookie')
-    //         .split(';')
-    //         .find((c) => c.trim().startsWith('loggedIn'))
-    //         .split('=')[1] === 'true';
     let message = req.flash('error');
     if (message.length > 0) {
         message = message[0];
@@ -87,8 +97,18 @@ exports.postSignup = (req, res, next) => {
                     return user.save();
                 })
                 .then((result) => {
+                    return transporter.sendMail({
+                        to: email,
+                        from: 'support@runcode.at',
+                        subject: 'Signup Successfully',
+                        html: '<h1>You successfully signed up!</h1>',
+                        text: 'You successfully signed up!',
+                    });
+                })
+                .then((result) => {
                     res.redirect('/login');
-                });
+                })
+                .catch((err) => console.log(err));
         })
         .catch((err) => console.log(err));
 };

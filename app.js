@@ -14,19 +14,9 @@ const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const csrf = require('csurf');
 const flash = require('connect-flash');
-const nodeMailer = require('nodemailer');
-const sendgridTransport = require('nodemailer-sendgrid-transport');
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
-
-const transporter = nodeMailer.createTransport(
-    sendgridTransport({
-        auth: {
-            api_key: process.env.SENDGRID_API_KEY,
-        },
-    })
-);
 
 const app = express();
 const store = new MongoDBStore({
